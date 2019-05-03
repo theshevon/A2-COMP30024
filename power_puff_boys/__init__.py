@@ -1,1 +1,1 @@
-from your_team_name.player import ExamplePlayer as Player
+from power_puff_boys.player import AIController as Player
