@@ -1,64 +1,41 @@
 class Board:
-    """
-    Represents the Chexers board, which is considered to be composed of nodes.
-    """
 
-    SIZE = 3
-
-    all_nodes   = set()
-    piece_nodes = { "red" : set(), "blue" : set(), "green" : set() }
-
-    # starting nodes for the different teams
-    start_nodes = {
-                        "red"   : { (-3,0), (-3,1),  (-3,2),  (-3,3) },
-                        "blue"  : {  (0,3),  (1,2),   (2,1),   (3,0) },
-                        "green" : { (0,-3), (1,-3),  (2,-3),  (3,-3) }
-                  }
-
-    # exit nodes for the different teams
-    exit_nodes  =  {
+    size          = 3 
+    all_nodes     = set()
+    blocked_nodes = set()
+    exit_nodes    = {
                         "red"   : { (3,-3), (3,-2),  (3,-1),  (3,0)  },
                         "blue"  : { (-3,0), (-2,-1), (-1,-2), (0,-3) },
                         "green" : { (-3,3), (-2,3),  (-1,3),  (0,3)  }
-                   }
+                    }
+    init_nodes    = {
+                        "red"   : { (-3,0), (-3,1),  (-3,2),  (-3,3) },
+                        "blue"  : {  (0,3),  (1,2),   (2,1),   (3,0) },
+                        "green" : { (0,-3), (1,-3),  (2,-3),  (3,-3) }
+                    }
 
     # coefficents for lines through exits (cf[0]q + cf[1]r + cf[2] = 0) 
-    exit_line_cfs = { "blue" : (1, 1, 3) , "red": (1, 0, -3), 
-                                                        "green" : (0, 1, -3) }
+    exit_line_cfs = {"blue" : (1, 1, 3) , "red": (1, 0, -3), "green" : (0, 1, -3) }
 
-    def __init__(self):
-        """
-        Initialises the board by creating and storing its nodes. 
-        It also stores the locations of the different pieces on the board.
-        """
+    def __init__(self, player_colour):
+        '''initialises a board by creating and storing its nodes'''
 
-        # initialise all nodes on board
-        ran = range(-self.SIZE, self.SIZE+1)
+        # intialise all nodes on board
+        ran = range(-self.size, self.size+1)
         for node in [(q,r) for q in ran for r in ran if -q-r in ran]:
             self.all_nodes.add(node)
 
-        # track the locations of each team's pieces
-        for colour in self.start_nodes:
-            for node in self.start_nodes[colour]:
-                self.piece_nodes[colour].add(node)
-
-    def update_piece_node(self, colour, action):
-        '''updates the position of a piece after a move'''
+        print("Player colour:", player_colour)
+        print("Set before:", self.blocked_nodes)
+        # consider each of the opponents' pieces as blocks
+        for colour in self.init_nodes:
+            
+            if colour != player_colour:
+                print("Colour:", colour)
+                for node in self.init_nodes[colour]:
+                    self.blocked_nodes.add(node)
         
-        if (action == "PASS"):
-            return 
-        
-        # remove prev location
-        self.piece_nodes[colour].discard(action[1][0])
-
-        # add updated piece location if move wasn't an exit
-        if ((action == "MOVE") or (action == "JUMP")):
-            self.piece_nodes[colour].add(action[1][1])
-
-    def get_piece_nodes(self, colour):
-        '''returns a set containing the locations of pieces of a specified colour'''
-        
-        return start_nodes[colour]
+        print("Set after:", self.blocked_nodes)
 
     def get_heuristic_cost(self, node_comb, colour):
         '''adds the heuristic cost for a given node group of a particular colour'''
@@ -70,8 +47,7 @@ class Board:
         return cost
 
     def get_distance_estimate(self, node, cfs):
-        '''returns the minimum possible sequence of moves from each node to 
-        any exit node'''
+        '''returns the minimum possible moves from each node to any exit nodes'''
         
         # shortest number of 'move' actions to reach an exit node
         min_move_cost = abs(cfs[0] * node[0] + cfs[1] * node[1] + cfs[2])
@@ -86,7 +62,7 @@ class Board:
 
         return node in self.all_nodes
 
-    def get_landing_node(self, curr_node, node_to_jump_over, blocked_nodes):
+    def get_landing_node(self, curr_node, node_to_jump_over):
         '''returns the landing node when when jumping from one node over another.
            returns None if the landing node is not on the board (i.e. a jump 
            isn't possible)'''
@@ -96,7 +72,7 @@ class Board:
 
         landing_node = (q,r)
 
-        return landing_node if ((landing_node in self.all_nodes) and (landing_node not in blocked_nodes)) else None
+        return landing_node if ((landing_node in self.all_nodes) and (landing_node not in self.blocked_nodes)) else None
 
     def get_exit_nodes(self, colour):
         '''returns the set of exit nodes for a particular colour'''

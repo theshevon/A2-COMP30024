@@ -1,20 +1,35 @@
 from math import sqrt
-from board import *
-from node_utilities import *
-from priority_queue import *
+from power_puff_boys.board import *
+from power_puff_boys.node_utilities import *
+from power_puff_boys.priority_queue import *
 
-class PathFinder():
+class DecisionEngine():
+    """Used to find path to exit nodes"""
 
-    # actions
-    move_ = "MOVE from {} to {}."
-    jump_ = "JUMP from {} to {}."
-    exit_ = "EXIT from {}."
+    board                 = None
+    colour                = None
+    exits                 = None
+    open_node_combs       = None
+    init_node_comb        = None
+    closed_node_combs     = None
+    open_node_combs_queue = None
+    states                = None
 
-    def __init__(self, data):
+    def __init__(self, piece_nodes):
 
-        self.board  = Board(data)
-        self.colour = data["colour"]
-        self.exits  = self.board.get_exit_nodes(self.colour)
+        # create board storing information about other players peices
+        self.board  = Board()
+        self.colour = colour
+        self.exits  = self.board.get_exit_nodes(colour)
+
+    def update_board(self, colour, action):
+        self.board.update_piece_node(colour, action)
+
+    def get_next_move(board, colour):
+        pass
+
+    def find_path(self):
+
         self.states = {}
 
         # node combinations that are known but not been explored
@@ -27,15 +42,19 @@ class PathFinder():
         self.open_node_combs_queue = PriorityQueue()
 
         self.init_node_comb = NodeCombination(set([tuple(node) for \
-                                                    node in data["pieces"]]))
+                                                        node in board.get_piece_nodes[colour]]))
         self.open_node_combs.add(self.init_node_comb)
         self.add_state(self.init_node_comb)
         self.states[self.init_node_comb].g_cost = 0
         self.open_node_combs_queue.add(0, self.init_node_comb)
 
-    def find_path(self):
-        '''finds and prints the optimal escape route for the pieces on the 
-           board'''
+
+        # blocked nodes here are nodes occupied by enemy pieces
+        blocked_nodes = set()
+        for colour_ in board.piece_nodes:
+            if colour_ != colour:
+                for node in board.piece_nodes[colour_]:
+                    blocked_nodes.add(node)
 
         while self.open_node_combs:
 
@@ -49,7 +68,8 @@ class PathFinder():
             if not curr_node_comb.nodes: 
                 break
 
-            for successor_comb in self.get_successor_combs(curr_node_comb):
+            for successor_comb in self.get_successor_combs(curr_node_comb, 
+                                                                blocked_nodes):
                 
                 # creates a new node for child if not already initiated
                 self.add_state(successor_comb)
@@ -73,7 +93,6 @@ class PathFinder():
         self.print_path(curr_node_comb)
 
     def add_state(self, node_comb):
-        '''adds state information for a particular node combination'''
 
         if node_comb not in self.states:
             self.states[node_comb] = State()
@@ -92,7 +111,7 @@ class PathFinder():
         
         return False 
 
-    def get_successor_combs(self, curr_node_comb):
+    def get_successor_combs(self, curr_node_comb, blocked_nodes):
         '''returns the possible successor combs for a given node combination'''
 
         nodes = curr_node_comb.nodes
@@ -113,10 +132,10 @@ class PathFinder():
 
                 if self.board.is_on_board(neighbour):
                     
-                    if (neighbour in self.board.blocked_nodes) or (neighbour in nodes):
+                    if (neighbour in blocked_nodes) or (neighbour in nodes):
                     
                         # add landing node only if it's an unoccupied node on the board
-                        landing_node = self.board.get_landing_node(node, neighbour)
+                        landing_node = self.board.get_landing_node(node, neighbour, blocked_nodes)
                         if landing_node and (landing_node not in nodes):
                             explorable_nodes.add(landing_node)
 
@@ -164,13 +183,23 @@ class PathFinder():
             # a 'JUMP'
             if (self.get_dist(start, end) <= sqrt(2)):
                 print(self.move_.format(start, end))
+                # self.debugger.update(start, end)
             else:
                 print(self.jump_.format(start, end))
+                # self.debugger.update(start, end)
 
         else:
             print(self.exit_.format(start))
+            # self.debugger.piece_locns.remove(start)
 
+        # self.debugger.print_board()
+        # time.sleep(1) # sleep used to show the pieces moving in a cinematic fashion
         
+
+
+
+
+       
 
 
 

@@ -1,0 +1,1 @@
+from p2.player import AIController as Player

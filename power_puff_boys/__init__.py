@@ -1,1 +1,1 @@
-from power_puff_boys.player import AIController as Player
+from power_puff_boys.player import AIPlayer as Player

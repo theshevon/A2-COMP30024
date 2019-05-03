@@ -1,50 +1,51 @@
+"""
+Implementation of an Autonomous agent that will play the Chexers board game 
+against two other players.
 
-class AIController:
+Version No: 1.0
+Version Details:
+Basic implementation that focuses on completing the game without making any
+invalid moves. The only strategy, if any, is that the player would cut another
+player's piece if in danger of being cut themselves.
+
+Written by David Crowe and Shevon Mendis, May 2019
+"""
+
+from power_puff_boys.board import *
+from power_puff_boys.decision_engine import *
+
+class AIPlayer:
+    """
+    Represents a Controller for an agent that plays Chexers.
+    """
+
+    board           = None
+    decision_engine = None
+
     def __init__(self, colour):
         """
-        This method is called once at the beginning of the game to initialise
-        your player. You should use this opportunity to set up your own internal
-        representation of the game state, and any other information about the 
-        game state you would like to maintain for the duration of the game.
-
-        The parameter colour will be a string representing the player your 
-        program will play as (Red, Green or Blue). The value will be one of the 
-        strings "red", "green", or "blue" correspondingly.
+        Initialises the player by building up an inner implementation of the 
+        game board.
         """
-        # TODO: Set up state representation.
 
-
+        self.board           = Board()
+        self.decision_engine = DecisionEngine(colour)
+        
     def action(self):
         """
-        This method is called at the beginning of each of your turns to request 
-        a choice of action from your program.
-
-        Based on the current state of the game, your player should select and 
-        return an allowed action to play on this turn. If there are no allowed 
-        actions, your player must return a pass instead. The action (or pass) 
-        must be represented based on the above instructions for representing 
-        actions.
+        Returns a MOVE, JUMP or EXIT action for the player's turn. If none of 
+        the latter moves are possible, returns a PASS action.
         """
-        # TODO: Decide what action to take.
-        return ("PASS", None)
+
+        return decision_engine.get_next_move(self.board)
 
 
     def update(self, colour, action):
         """
-        This method is called at the end of every turn (including your player’s 
-        turns) to inform your player about the most recent action. You should 
-        use this opportunity to maintain your internal representation of the 
-        game state and any other information about the game you are storing.
-
-        The parameter colour will be a string representing the player whose turn
-        it is (Red, Green or Blue). The value will be one of the strings "red", 
-        "green", or "blue" correspondingly.
-
-        The parameter action is a representation of the most recent action (or 
-        pass) conforming to the above in- structions for representing actions.
-
-        You may assume that action will always correspond to an allowed action 
-        (or pass) for the player colour (your method does not need to validate 
-        the action/pass against the game rules).
+        Updates the board after a player has made a move.
         """
-        # TODO: Update state representation in response to action.
+
+        self.board.update_node(self, colour, action)
+
+        
+            
