@@ -104,6 +104,7 @@ class Board:
         """
         Returns True if a node is within the board.
         """
+
         return node in self.all_nodes
 
     def get_dist(self, node_1, node_2):

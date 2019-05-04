@@ -10,8 +10,8 @@ invalid moves. All of the players moves are random.
 Written by David Crowe and Shevon Mendis, May 2019
 """
 
-from power_puff_boys.board import *
-from power_puff_boys.decision_engine import *
+from asil.board import *
+from asil.decision_engine import *
 
 class AIPlayer:
     """

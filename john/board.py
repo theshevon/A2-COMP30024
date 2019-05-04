@@ -38,6 +38,8 @@ class Board:
         ran = range(-self.SIZE, self.SIZE+1)
         for node in [(q,r) for q in ran for r in ran if -q-r in ran]:
             self.all_nodes.add(node)
+        
+        # print("ALL NODES:", self.all_nodes)
 
         # track the locations of each team's pieces
         for colour in self.start_nodes:
@@ -104,6 +106,7 @@ class Board:
         """
         Returns True if a node is within the board.
         """
+
         return node in self.all_nodes
 
     def get_dist(self, node_1, node_2):
@@ -127,7 +130,7 @@ class Board:
             for r in range(r_start, r_end):
                 possible_neighbour = (q,r)
 
-                if (possible_neighbour != node) and (self.is_on_board(possible_neighbour)) :
+                if (possible_neighbour != node) and (self.is_on_board(possible_neighbour)):
                     neighbours.append(possible_neighbour)
 
             col += 1

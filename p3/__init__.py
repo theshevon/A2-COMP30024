@@ -1,1 +1,0 @@
-from p3.player import AIController as Player
