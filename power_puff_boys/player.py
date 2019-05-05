@@ -5,7 +5,7 @@ against two other players.
 Version No: 0.0
 Version Details:
 Basic implementation that focuses on completing the game without making any
-invalid moves. All of the players moves are random.
+invalid moves. All of the players' moves are random.
 
 Written by David Crowe and Shevon Mendis, May 2019
 """

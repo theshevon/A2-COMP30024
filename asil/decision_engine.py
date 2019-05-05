@@ -1,7 +1,7 @@
 from math import sqrt
 from random import randint
-from asil.node_utilities import *
-from asil.priority_queue import *
+from power_puff_boys.node_utilities import *
+from power_puff_boys.priority_queue import *
 
 class DecisionEngine():
     """
@@ -21,6 +21,7 @@ class DecisionEngine():
 
         self.colour      = colour
         self.exit_nodes  = board.get_exit_nodes(colour)
+        print("EXITS:", self.exit_nodes)
 
     def get_next_move(self, board):
         """

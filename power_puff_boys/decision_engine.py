@@ -21,6 +21,7 @@ class DecisionEngine():
 
         self.colour      = colour
         self.exit_nodes  = board.get_exit_nodes(colour)
+        print("EXITS:", self.exit_nodes)
 
     def get_next_move(self, board):
         """

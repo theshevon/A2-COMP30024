@@ -1,7 +1,7 @@
 from math import sqrt
 from random import randint
-from john.node_utilities import *
-from john.priority_queue import *
+from power_puff_boys.node_utilities import *
+from power_puff_boys.priority_queue import *
 
 class DecisionEngine():
     """
@@ -21,6 +21,7 @@ class DecisionEngine():
 
         self.colour      = colour
         self.exit_nodes  = board.get_exit_nodes(colour)
+        print("EXITS:", self.exit_nodes)
 
     def get_next_move(self, board):
         """
@@ -71,6 +72,7 @@ class DecisionEngine():
                     landing_node = board.get_landing_node(node, neighbouring_node, occupied_nodes)
                     if (landing_node):
                         possible_moves.append((node, landing_node))
+                
                 else:
                     possible_moves.append((node, neighbouring_node))
 

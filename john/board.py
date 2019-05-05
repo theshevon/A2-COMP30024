@@ -38,8 +38,6 @@ class Board:
         ran = range(-self.SIZE, self.SIZE+1)
         for node in [(q,r) for q in ran for r in ran if -q-r in ran]:
             self.all_nodes.add(node)
-        
-        # print("ALL NODES:", self.all_nodes)
 
         # track the locations of each team's pieces
         for colour in self.start_nodes:
@@ -52,16 +50,38 @@ class Board:
         """
 
         # a pass action does not require any updating        
-        if (action[0] == "PASS"):
+        if action[0] == "PASS":
             return 
         
-        # for any other action, discard the pieces previous location 
-        self.piece_nodes[colour].discard(action[1][0])
+        if action[0] == "EXIT":
+            self.piece_nodes[colour].discard(action[1])
 
         # and if the move wasn't an exit update the set to reflect the pieces 
         # new location
-        if ((action[0] == "MOVE") or (action[0] == "JUMP")):
+        if (action[0] == "MOVE") or (action[0] == "JUMP"):
             self.piece_nodes[colour].add(action[1][1])
+            self.piece_nodes[colour].discard(action[1][0])
+
+        # check if a piece got cut
+        if action[0] == "JUMP":
+            # get the node that was jumped over
+            q = int((action[1][1][0] + action[1][0][0]) / 2)
+            r = int((action[1][1][1] + action[1][0][1]) / 2)
+            jumped_over_node = (q, r)
+            self.change_piece_node(jumped_over_node, colour)
+
+            
+    def change_piece_node(self, node, new_colour):
+        """
+        Changes the assignment of a node to a different colour, provided that
+        a piece has been cut.
+        """
+        
+        for colour in self.piece_nodes:
+            if node in self.piece_nodes[colour]:
+                self.piece_nodes[colour].discard(node)
+                self.piece_nodes[new_colour].add(node)
+                return
 
     def get_piece_nodes(self, colour):
         """
@@ -84,9 +104,11 @@ class Board:
         return piece_nodes
 
     def get_landing_node(self, curr_node, node_to_jump_over, blocked_nodes):
-        '''returns the landing node when when jumping from one node over another.
-           returns None if the landing node is not on the board (i.e. a jump 
-           isn't possible)'''
+        """
+        Returns the landing node when when jumping from one node over another.
+        Returns None if the landing node is not on the board (i.e. a jump 
+        isn't possible).
+        """
 
         q = 2 * node_to_jump_over[0] - curr_node[0]
         r = 2 * node_to_jump_over[1] - curr_node[1]
@@ -106,7 +128,6 @@ class Board:
         """
         Returns True if a node is within the board.
         """
-
         return node in self.all_nodes
 
     def get_dist(self, node_1, node_2):
@@ -130,7 +151,7 @@ class Board:
             for r in range(r_start, r_end):
                 possible_neighbour = (q,r)
 
-                if (possible_neighbour != node) and (self.is_on_board(possible_neighbour)):
+                if (possible_neighbour != node) and (self.is_on_board(possible_neighbour)) :
                     neighbours.append(possible_neighbour)
 
             col += 1
