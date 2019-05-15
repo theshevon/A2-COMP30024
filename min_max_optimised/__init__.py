@@ -1,1 +1,1 @@
-from ppb_alpha_beta.player import AIPlayer as Player
+from min_max_optimised.player import AIPlayer as Player
