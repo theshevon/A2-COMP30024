@@ -2,10 +2,9 @@
 Implementation of an Autonomous agent that will play the Chexers board game 
 against two other players.
 
-Version No: 0.0
+Version No: 0.365
 Version Details:
-Basic implementation that focuses on completing the game without making any
-invalid moves. All of the players' moves are random.
+Hopefully working min-max XD 
 
 Written by David Crowe and Shevon Mendis, May 2019
 """
@@ -29,16 +28,15 @@ class AIPlayer:
         """
         #Need to include a way of
         self.game_mechanics  = GameMechanics()
-        self.current_state   = State(GameMechanics.start_nodes)
-        self.decision_engine = DecisionEngine(colour, self.game_mechanics)
+        self.current_state   = State(GameMechanics.start_nodes , GameMechanics.start_exit_counts)
+        self.decision_engine = DecisionEngine(colour)
         
     def action(self):
         """
         Returns a MOVE, JUMP or EXIT action for the player's turn. If none of 
         the latter moves are possible, returns a PASS action.
         """
-
-        return self.decision_engine.get_next_move(self.current_state, self.game_mechanics)
+        return self.decision_engine.get_next_move(self.current_state)
 
 
     def update(self, colour, action):
