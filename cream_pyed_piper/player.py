@@ -37,15 +37,15 @@ class AIPlayer:
         the latter moves are possible, returns a PASS action.
         """
 
-        return self.decision_engine.get_next_move(self.board)
+        return self.decision_engine.get_next_action(self.board)
 
 
     def update(self, colour, action):
         """
-        Updates the board after a player has made a move.
+        Updates the board and game state after a player has performed an action.
         """
 
-        self.board.update_node(colour, action)
+        self.board.update_game_state(colour, action)
 
 
 if __name__ == "__main__":

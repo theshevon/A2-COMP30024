@@ -1,4 +1,5 @@
 from math import sqrt
+from cream_pyed_piper.decision_engine import *
 
 class Board:
     """
@@ -7,9 +8,9 @@ class Board:
 
     SIZE = 3
 
-    all_nodes   = set()
-    prev_piece_nodes = { "red" : set(), "blue" : set(), "green" : set() }
-    curr_piece_nodes = { "red" : set(), "blue" : set(), "green" : set() }
+    all_nodes        = set()
+    curr_game_state  = None
+    prev_game_state  = None
 
     # starting nodes for the different teams
     start_nodes = {
@@ -23,6 +24,13 @@ class Board:
                         "red"   : { (3,-3), (3,-2),  (3,-1),  (3,0)  },
                         "blue"  : { (-3,0), (-2,-1), (-1,-2), (0,-3) },
                         "green" : { (-3,3), (-2,3),  (-1,3),  (0,3)  }
+                   }
+
+    # no of exits made by each team
+    exit_counts =  {
+                        "red"   : 0,
+                        "blue"  : 0,
+                        "green" : 0
                    }
 
     # coefficents for lines through exits (cf[0]q + cf[1]r + cf[2] = 0) 
@@ -40,36 +48,36 @@ class Board:
         for node in [(q,r) for q in ran for r in ran if -q-r in ran]:
             self.all_nodes.add(node)
 
-        # track the locations of each team's pieces
+        # store state information for the board
+        piece_nodes = { "red" : set(), "blue" : set(), "green" : set() } 
+        exit_counts = { "red" : 0, "blue" : 0, "green" : 0 }
         for colour in self.start_nodes:
             for node in self.start_nodes[colour]:
-                self.curr_piece_nodes[colour].add(node)
+                piece_nodes[colour].add(node)
 
-    def copy_dict(self, to_dict, from_dict):
+        self.curr_game_state = GameState(piece_nodes, exit_counts)
+        self.prev_game_state = GameState(piece_nodes, exit_counts)
 
-        for colour in self.start_nodes:
-            to_dict[colour] = from_dict[colour].copy()
-
-    def update_node(self, colour, action):
+    def update_game_state(self, colour, action):
         """
-        Updates the position of a piece after a move was taken.
+        Updates the game state after a player performs an action.
         """
 
-        self.copy_dict(self.prev_piece_nodes, self.curr_piece_nodes)
-        # print("Prev state: ", self.prev_piece_nodes)
+        self.prev_game_state.copy(self.curr_game_state)
 
         # a pass action does not require any updating        
         if action[0] == "PASS":
             return 
         
         if action[0] == "EXIT":
-            self.curr_piece_nodes[colour].discard(action[1])
+            self.curr_game_state.piece_nodes[colour].discard(action[1])
+            self.curr_game_state.exit_counts[colour] += 1
 
         # and if the move wasn't an exit update the set to reflect the pieces 
         # new location
         if (action[0] == "MOVE") or (action[0] == "JUMP"):
-            self.curr_piece_nodes[colour].add(action[1][1])
-            self.curr_piece_nodes[colour].discard(action[1][0])
+            self.curr_game_state.piece_nodes[colour].add(action[1][1])
+            self.curr_game_state.piece_nodes[colour].discard(action[1][0])
 
         # check if a piece got cut
         if action[0] == "JUMP":
@@ -79,27 +87,23 @@ class Board:
             jumped_over_node = (q, r)
             self.change_piece_node(jumped_over_node, colour)
 
-        # print("Curr state: ", self.curr_piece_nodes)
-        # print("Prev state: ", self.prev_piece_nodes)
+    def revert_to_previous_state(self):
+        """
+        Reverts the board to the previous game state.
+        """
 
-    def undo_last_move(self):
-        """
-        Undoes the previous move.
-        """
-        # print("Prev state: (undo) ", self.prev_piece_nodes)
-        self.copy_dict(self.curr_piece_nodes, self.prev_piece_nodes)
-        # print("Curr state: (undo)", self.curr_piece_nodes)
-            
+        self.curr_game_state.copy(self.prev_game_state)
+                  
     def change_piece_node(self, node, new_colour):
         """
         Changes the assignment of a node to a different colour, provided that
         a piece has been cut.
         """
         
-        for colour in self.curr_piece_nodes:
-            if node in self.curr_piece_nodes[colour]:
-                self.curr_piece_nodes[colour].discard(node)
-                self.curr_piece_nodes[new_colour].add(node)
+        for colour in self.curr_game_state.piece_nodes:
+            if node in self.curr_game_state.piece_nodes[colour]:
+                self.curr_game_state.piece_nodes[colour].discard(node)
+                self.curr_game_state.piece_nodes[new_colour].add(node)
                 return
 
     def get_piece_nodes(self, colour):
@@ -108,21 +112,7 @@ class Board:
         colour.
         """
         
-        return self.curr_piece_nodes[colour]
-
-    def get_all_enemy_piece_nodes(self, colour):
-        """
-        Returns a set containing the nodes occupied by pieces of colours other 
-        than the one specified.
-        """
-
-        piece_nodes = set()
-        for colour_ in self.curr_piece_nodes:
-            if (colour_ == colour):
-                continue
-            piece_nodes = piece_nodes.union(self.curr_piece_nodes[colour])
-        
-        return piece_nodes
+        return self.curr_game_state.piece_nodes[colour]
 
     def get_all_piece_nodes(self):
         """
@@ -131,24 +121,28 @@ class Board:
         """
 
         piece_nodes = set()
-        for colour in self.curr_piece_nodes:
-            piece_nodes = piece_nodes.union(self.curr_piece_nodes[colour])
+        for colour in self.curr_game_state.piece_nodes:
+            piece_nodes = \
+                    piece_nodes.union(self.curr_game_state.piece_nodes[colour])
 
         return piece_nodes
 
-    def get_landing_node(self, curr_node, node_to_jump_over, blocked_nodes):
+    def get_landing_node(self, curr_node, node_to_jump_over):
         """
         Returns the landing node when when jumping from one node over another.
         Returns None if the landing node is not on the board (i.e. a jump 
         isn't possible).
         """
 
+        occupied_nodes = self.get_all_piece_nodes()
+
         q = 2 * node_to_jump_over[0] - curr_node[0]
         r = 2 * node_to_jump_over[1] - curr_node[1]
 
         landing_node = (q,r)
 
-        return landing_node if ((landing_node in self.all_nodes) and (landing_node not in blocked_nodes)) else None
+        return landing_node if ((landing_node in self.all_nodes) and \
+                                (landing_node not in occupied_nodes)) else None
 
     def get_exit_nodes(self, colour):
         """
