@@ -1,22 +1,18 @@
 from math import sqrt
-from random import randint
-from cream_pyed_piper.utilities import *
-import sys
+from AI_Papi.game_state import *
 
 class DecisionEngine():
     """
     Represents the agents 'brain' and so, decides which node to move to next.
     """
 
-    EXIT                  = (999, 999)
-    DEPTH                 = 5
-    colour                = None
-    exit_nodes            = None
+    EXIT   = (999, 999)
+    DEPTH  = 3
+    colour = None
 
-    def __init__(self, colour, board):
+    def __init__(self, colour):
 
-        self.colour      = colour
-        self.exit_nodes  = board.get_exit_nodes(colour)
+        self.colour = colour
 
     def get_next_action(self, board):
         """
@@ -24,34 +20,39 @@ class DecisionEngine():
         given the current state of the board.
         """
 
-        utility, action = self.minimax(board, board.curr_game_state, self.DEPTH, float("-inf"), float("+inf"), self.colour, self.colour)
-       
+        _, action = self.minimax(board, board.get_game_state(), self.DEPTH, float("-inf"), float("+inf"), self.colour, self.colour)
+
+        if action is None:
+            return ('PASS', None)
+            
         return action
 
     def get_action_from_move(self, board, move):
         """
-        Returns an action based on a move.
+        Returns an action corresponding to a move.
         """
         if move[1] == self.EXIT:
             return ("EXIT", move[0])
         else:
-            if board.get_dist(move[0], move[1]) <= sqrt(2):
+            if board.get_euclidean_distance(move[0], move[1]) <= sqrt(2):
                 return ("MOVE", move)
             return ("JUMP", move)
 
-    def get_all_possible_actions(self, board, nodes):
+    def get_all_possible_actions(self, state, board, colour):
         """
-        Returns a list of all the possible nodes that can be moved to. An exit 
-        is denoted by (999, 999).
+        Returns a list of all the possible actions that a player can perform. 
+        An exit move is a special case and is denoted by the two-tuple 
+        ("EXIT", (999, 999)).
         """
 
         possible_moves = []
-        occupied_nodes = board.get_all_piece_nodes()        
+        team_nodes     = state.get_team_piece_nodes(colour)
+        occupied_nodes = state.get_all_piece_nodes()       
 
-        for node in nodes:
+        for node in team_nodes:
 
             # check if an exit is one of the possible moves
-            if node in self.exit_nodes:
+            if node in board.get_exit_nodes(colour):
                 possible_moves.append((node, self.EXIT))
             
             # add neighbouring nodes to list
@@ -60,7 +61,7 @@ class DecisionEngine():
                 # if neighbouring node is occupied, look for landing spots
                 if neighbouring_node in occupied_nodes:
 
-                    landing_node = board.get_landing_node(node, neighbouring_node)
+                    landing_node=board.get_landing_node(node, neighbouring_node)
                     if (landing_node):
                         possible_moves.append((node, landing_node))
                 
@@ -74,6 +75,27 @@ class DecisionEngine():
         
         return possible_actions
    
+    def get_all_successor_states(self, state, board, colour):
+        """
+        Returns a list of 2 tuples containing the all the possible states that 
+        the game can be succeeded into, given its current state and the action
+        required to move into that state.
+        """
+
+        successor_states = []
+
+        # generate all possible_actions
+        possible_actions = self.get_all_possible_actions(state, board, colour)
+
+        # for each move, create a new game state
+        for action in possible_actions:
+            
+            successor_state = deepcopy(state)
+            successor_state.update(colour, action)
+            successor_states.append((successor_state, action))
+            
+        return successor_states
+
     def evaluate_state(self, board, state, colour):
         
         nodes = state.piece_nodes[colour]
@@ -86,7 +108,7 @@ class DecisionEngine():
         # - get average distance to exit
         total_dist = 0
         for node in nodes:
-            total_dist = board.get_distance_estimate(node, colour)
+            total_dist = board.get_approx_distance_to_exit(node, colour)
         avg_dist_to_exit = total_dist / n_nodes
 
         # - get army displacement
@@ -99,7 +121,7 @@ class DecisionEngine():
         # -- calculate average distance of each piece from centroid
         total_dist = 0
         for node in nodes:
-            total_dist = board.get_dist(central_node, node)
+            total_dist = board.get_euclidean_distance(central_node, node)
         avg_dist_centre = total_dist / n_nodes
 
         # - check number of enemy pieces
@@ -120,7 +142,7 @@ class DecisionEngine():
         # check if game over (terminal state reached)
         if (depth == 0) or (state.is_terminal()):
             # the exit state cannot have a best child state
-            return self.evaluate_state(board, state, curr_colour)
+            return self.evaluate_state(board, state, curr_colour), None
 
         # maximising player
         if (curr_colour == max_colour):
@@ -128,9 +150,9 @@ class DecisionEngine():
             best_utility = float("-inf")
             best_action  = None
 
-            for child_state, action in self.get_all_successor_states(board, curr_colour):
-                utility = self.minimax(board, child_state, depth-1, alpha, beta, next_colour[curr_colour], max_colour)
-                if (utility > best_utility) and (act):
+            for child_state, action in self.get_all_successor_states(state, board, curr_colour):
+                utility, _ = self.minimax(board, child_state, depth-1, alpha, beta, next_colour[curr_colour], max_colour)
+                if (utility > best_utility):
                     best_utility = utility
                     best_action  = action
                 alpha = max(alpha, utility)
@@ -145,9 +167,9 @@ class DecisionEngine():
             best_utility = float("+inf")
             best_action  = None
 
-            for child_state, action in self.get_all_successor_states(board, curr_colour):
-                utility = self.minimax(board, child_state, depth-1, alpha, beta, next_colour[curr_colour], max_colour)
-                if (utility < best_utility) and (act):
+            for child_state, action in self.get_all_successor_states(state, board, curr_colour):
+                utility, _ = self.minimax(board, child_state, depth-1, alpha, beta, next_colour[curr_colour], max_colour)
+                if (utility < best_utility):
                     best_utility = utility
                     best_action  = action
                 beta = min(beta, utility)
@@ -156,34 +178,7 @@ class DecisionEngine():
                     break
             return best_utility, best_action
 
-    def get_all_successor_states(self, board, colour):
-        """
-        Returns a list of 2 tuples containing the all the possible states that 
-        the game can be succeeded into, given its current state and the action
-        required to move into that state.
-        """
 
-        successor_states = []
-
-        piece_nodes = board.get_piece_nodes(colour)
-
-        # generate all possible_actions
-        possible_actions = self.get_all_possible_actions(board, piece_nodes)
-
-        # for each move, create a new game state
-        for action in possible_actions:
-
-            # carry out the action
-            board.update_game_state(self.colour, action)
-
-            state = GameState(board.curr_game_state.piece_nodes, 
-                                board.curr_game_state.exit_counts)
-            successor_states.append((state, action))
-
-            # undo the action
-            board.revert_to_previous_state()
-
-        return successor_states
 
 
 
