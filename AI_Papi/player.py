@@ -10,6 +10,11 @@ Version Details:
     - Minimises the distance to the exit
     - Minimises the number of enemy pieces
     - Maximises the number of team pieces
+Current Issues:
+- Doesn't know how to exit
+- Heuristic not good enough
+- Tries to PASS a move despite moves being available
+- Agent garbage overall
 
 Written by David Crowe and Shevon Mendis, May 2019
 """

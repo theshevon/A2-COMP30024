@@ -7,7 +7,7 @@ class DecisionEngine():
     """
 
     EXIT   = (999, 999)
-    DEPTH  = 3
+    DEPTH  = 4
     colour = None
 
     def __init__(self, colour):
@@ -96,19 +96,19 @@ class DecisionEngine():
             
         return successor_states
 
-    def evaluate_state(self, board, state, colour):
+    def evaluate_state(self, board, state, curr_colour, max_colour):
         
-        nodes = state.piece_nodes[colour]
+        nodes = state.piece_nodes[curr_colour]
         n_nodes = len(nodes)
 
         # terminal state
         if n_nodes == 0:
-            return float("+inf")
+            return float("+inf") if curr_colour == max_colour else float("-inf")
         
         # - get average distance to exit
         total_dist = 0
         for node in nodes:
-            total_dist = board.get_approx_distance_to_exit(node, colour)
+            total_dist = board.get_approx_distance_to_exit(node, curr_colour)
         avg_dist_to_exit = total_dist / n_nodes
 
         # - get army displacement
@@ -125,12 +125,12 @@ class DecisionEngine():
         avg_dist_centre = total_dist / n_nodes
 
         # - check number of enemy pieces
-        n_enemy_pieces = len(state.get_enemy_piece_nodes(colour))
+        n_enemy_pieces = len(state.get_enemy_piece_nodes(curr_colour))
 
         # - calculate utility
         utility = n_nodes - avg_dist_centre - avg_dist_to_exit - n_enemy_pieces
 
-        return utility
+        return (utility + 10000) if curr_colour == max_colour  else (utility - 10000)
         
     def minimax(self, board, state, depth, alpha, beta, curr_colour, max_colour):
         """
@@ -142,7 +142,7 @@ class DecisionEngine():
         # check if game over (terminal state reached)
         if (depth == 0) or (state.is_terminal()):
             # the exit state cannot have a best child state
-            return self.evaluate_state(board, state, curr_colour), None
+            return self.evaluate_state(board, state, curr_colour, max_colour), None
 
         # maximising player
         if (curr_colour == max_colour):
