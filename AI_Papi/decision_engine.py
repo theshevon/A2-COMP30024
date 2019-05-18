@@ -7,7 +7,7 @@ class DecisionEngine():
     """
 
     EXIT   = (999, 999)
-    DEPTH  = 4
+    DEPTH  = 3
     colour = None
 
     def __init__(self, colour):
@@ -96,20 +96,28 @@ class DecisionEngine():
             
         return successor_states
 
-    def evaluate_state(self, board, state, curr_colour, max_colour):
+    def evaluate_state(self, board, state, colour):
         
-        nodes = state.piece_nodes[curr_colour]
+        utility = 0
+
+        nodes = state.piece_nodes[colour]
         n_nodes = len(nodes)
 
-        # terminal state
         if n_nodes == 0:
-            return float("+inf") if curr_colour == max_colour else float("-inf")
+            if state.get_exit_count(colour) == state.WIN_EXIT_COUNT:
+                return float("+inf")
+            else:
+                return float("-inf")
+
+        utility += 20 * n_nodes
         
         # - get average distance to exit
         total_dist = 0
         for node in nodes:
-            total_dist = board.get_approx_distance_to_exit(node, curr_colour)
+            total_dist = board.get_approx_distance_to_exit(node, colour)
         avg_dist_to_exit = total_dist / n_nodes
+
+        utility += 5 * avg_dist_to_exit;
 
         # - get army displacement
         # -- calculate centroid
@@ -122,46 +130,47 @@ class DecisionEngine():
         total_dist = 0
         for node in nodes:
             total_dist = board.get_euclidean_distance(central_node, node)
-        avg_dist_centre = total_dist / n_nodes
+        avg_dist_to_centre = total_dist / n_nodes
+
+        utility += 15 * avg_dist_to_centre
 
         # - check number of enemy pieces
-        n_enemy_pieces = len(state.get_enemy_piece_nodes(curr_colour))
+        n_enemy_pieces = len(state.get_enemy_piece_nodes(colour))
 
-        # - calculate utility
-        utility = n_nodes - avg_dist_centre - avg_dist_to_exit - n_enemy_pieces
+        utility += -1 * n_enemy_pieces
 
-        return (utility + 10000) if curr_colour == max_colour  else (utility - 10000)
-        
+        if state.get_exit_count(colour) == state.WIN_EXIT_COUNT:
+            utility += 10000
+
+        return utility
+
+
     def minimax(self, board, state, depth, alpha, beta, curr_colour, max_colour):
-        """
-        Returns (utility, action)
-        """
+
+        next_colour = { "red" : "green", "green" : "blue", "blue" : "red" }
+
+        if depth == 0:
+            return self.evaluate_state(board, state, max_colour), None
         
-        next_colour = {"red": "blue" , "blue": "green" , "green": "red"}
+        is_maximising_player = True if max_colour == curr_colour else False
 
-        # check if game over (terminal state reached)
-        if (depth == 0) or (state.is_terminal()):
-            # the exit state cannot have a best child state
-            return self.evaluate_state(board, state, curr_colour, max_colour), None
-
-        # maximising player
-        if (curr_colour == max_colour):
-
+        if is_maximising_player:
+            
             best_utility = float("-inf")
             best_action  = None
 
             for child_state, action in self.get_all_successor_states(state, board, curr_colour):
                 utility, _ = self.minimax(board, child_state, depth-1, alpha, beta, next_colour[curr_colour], max_colour)
-                if (utility > best_utility):
+                if utility > best_utility:
                     best_utility = utility
                     best_action  = action
-                alpha = max(alpha, utility)
+                alpha = max(alpha, best_utility)
 
-                if (alpha >= beta):
+                if alpha >= beta:
                     break
+
             return best_utility, best_action
 
-        # minimising player
         else:
 
             best_utility = float("+inf")
@@ -169,20 +178,20 @@ class DecisionEngine():
 
             for child_state, action in self.get_all_successor_states(state, board, curr_colour):
                 utility, _ = self.minimax(board, child_state, depth-1, alpha, beta, next_colour[curr_colour], max_colour)
-                if (utility < best_utility):
+                if utility < best_utility:
                     best_utility = utility
                     best_action  = action
-                beta = min(beta, utility)
+                beta = min(beta, best_utility)
 
-                if (alpha >= beta):
+                if alpha >= beta:
                     break
+            
             return best_utility, best_action
+            
 
 
 
-
-
-
+    
 
 
 

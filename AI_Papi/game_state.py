@@ -12,6 +12,11 @@ class GameState:
         self.piece_nodes = deepcopy(piece_nodes)
         self.exit_counts = deepcopy(exit_counts)
 
+    def print_info(self):
+        print("Piece Nodes:", self.piece_nodes)
+        print("Exit Counts:", self.exit_counts)
+
+
     def get_team_piece_nodes(self, colour):
         """
         Returns a dictionary containing the nodes occupied by all the pieces on 
@@ -45,6 +50,13 @@ class GameState:
         
         return piece_nodes
 
+    def get_exit_count(self, colour):
+        """
+        Returns the number of exits for a particular colour.
+        """
+
+        return self.exit_counts[colour]
+        
     def is_terminal(self):
         """
         Returns True if the state results in a team winning.
