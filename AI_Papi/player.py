@@ -2,19 +2,21 @@
 Implementation of an Autonomous agent that will play the Chexers board game 
 against two other players.
 
-Version No: 2.1
+Version No: 2.2
 Version Details:
 - Utilises a minimax tree with alpha-beta pruning to determine the best move
 - The best move is determined by evaulating a game state using a heuristic that:
     - Minimises team army displacement
     - Minimises the distance to the exit
     - Minimises the number of enemy pieces
+        - Scores the enemies based on how threatening they are to our agents 
+          pieces. The score factors in how many pieces you have on the board as
+          an enemy would be less threatening if you had > (4 - n_pieces_exited)
+          on the board
     - Maximises the number of team pieces
 Current Issues:
-- Doesn't know how to exit
-- Heuristic not good enough
-- Tries to PASS a move despite moves being available
-- Agent garbage overall
+- Still not exiting competently- agent has a tendency to cluster at corner and 
+  repeat the same moves until game times out.
 
 Written by David Crowe and Shevon Mendis, May 2019
 """

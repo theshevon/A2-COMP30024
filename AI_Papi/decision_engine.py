@@ -96,7 +96,7 @@ class DecisionEngine():
             
         return successor_states
 
-    def evaluate_state(self, board, state, colour):
+    def evaluate_state_old(self, board, state, colour):
         
         utility = 0
 
@@ -109,7 +109,7 @@ class DecisionEngine():
             else:
                 return float("-inf")
 
-        utility += 20 * n_nodes
+        utility += 20 * n_nodes 
         
         # - get average distance to exit
         total_dist = 0
@@ -144,6 +144,76 @@ class DecisionEngine():
 
         return utility
 
+    def evaluate_state(self, board, state, colour):
+        
+        utility        = 0
+        player_nodes   = state.piece_nodes[colour]
+        n_nodes        = len(player_nodes)
+
+        if n_nodes == 0:
+            if state.get_exit_count(colour) == state.WIN_EXIT_COUNT:
+                return float("+inf")
+            else:
+                return float("-inf")
+
+        # - get average distance to exit
+        total_no_moves_to_exit = 0
+        for p_node in player_nodes:
+            total_no_moves_to_exit += board.get_min_no_of_moves_to_exit(p_node, colour)
+        avg_no_of_moves_to_exit = total_no_moves_to_exit / n_nodes
+
+        # - get army displacement
+        # -- calculate coordinates of central node
+        central_node = [0, 0]
+        for p_node in player_nodes:
+            central_node[0] += p_node[0]
+            central_node[1] += p_node[1]
+        central_node = tuple([coord_val / n_nodes for coord_val in central_node])
+        # -- calculate the average distance of each piece from the centroid
+        total_dist = 0
+        for p_node in player_nodes:
+            total_dist += board.get_euclidean_distance(central_node, p_node)
+        avg_dist_to_centre = total_dist / n_nodes
+
+        # score opponents
+        enemy_nodes  = state.get_enemy_piece_nodes(colour)
+        enemy_scores = 0
+        for e_node in enemy_nodes:
+            # if enemy can cut one of your pieces, give them a higher score
+            for p_node in player_nodes:
+                if board.get_euclidean_distance(p_node, e_node) <= sqrt(2):
+                    # enemy is on an adjacent node so check if they can cut you
+                    # on the board
+                    if board.get_landing_node(e_node, p_node):
+                        # factor in how many pieces you have on the board b/c
+                        # the enemy would be less threatening if you had > (4 - n_pieces_exited)
+                        p_pieces_needed_to_exit = state.WIN_EXIT_COUNT - state.get_exit_count(colour)
+                        if n_nodes < p_pieces_needed_to_exit:
+                            enemy_scores += 10
+                        elif n_nodes == p_pieces_needed_to_exit:
+                            enemy_scores += 8
+                        else:
+                            enemy_scores += 3
+            enemy_scores += 1
+
+        # score players
+        player_scores = 0
+        for p_node in player_nodes:
+            player_scores += 3
+
+
+        # calculate utility based on the above scores
+        utility = (1 / avg_no_of_moves_to_exit) + \
+                  (1 / enemy_scores) + \
+                  (1 / avg_dist_to_centre) + \
+                  player_scores
+
+        # exit if it results in a terminal state
+        if state.get_exit_count(colour) == state.WIN_EXIT_COUNT:
+            utility += 100000
+
+        return utility
+    
 
     def minimax(self, board, state, depth, alpha, beta, curr_colour, max_colour):
 

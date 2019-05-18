@@ -136,15 +136,15 @@ class Board:
 
         return neighbours
 
-    def get_approx_distance_to_exit(self, node, colour):
+    def get_min_no_of_moves_to_exit(self, node, colour):
         """
-        Returns the minimum possible moves from each node to any exit nodes.
+        Returns the minimum possible moves from a node to an exit nodes.
         """
         
         cfs = self.EXIT_LINE_CFS[colour]
         
         # shortest number of 'move' actions to reach an exit node
-        min_move_cost = abs(cfs[0] * node[0] + cfs[1] * node[1] + cfs[2])
+        n_min_moves = abs(cfs[0] * node[0] + cfs[1] * node[1] + cfs[2])
 
-        return min_move_cost
+        return n_min_moves
 
