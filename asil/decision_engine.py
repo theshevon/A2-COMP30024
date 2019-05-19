@@ -9,11 +9,7 @@ class DecisionEngine():
     EXIT                  = (999, 999)
     colour                = None
     exit_nodes            = None
-    open_node_combs       = None
-    init_node_comb        = None
-    closed_node_combs     = None
-    open_node_combs_queue = None
-    states                = None
+
 
     def __init__(self, colour, board):
 

@@ -2,17 +2,19 @@
 Implementation of an Autonomous agent that will play the Chexers board game 
 against two other players.
 
-Version No: 2.0
+Version No: 2.2
 Version Details:
-Implementation that utilises a heuristic that's based on minimising team 
-displacement, distance to exit and the enemies pieces while maximising their 
-number of pieces.
+- Utilises a minimax tree with alpha-beta pruning to determine the best move
+- The best move is determined by evaulating a game state using a heuristic that:
+    - Minimises the number of enemy pieces
+Current Issues:
+- None have been found yet
 
 Written by David Crowe and Shevon Mendis, May 2019
 """
 
-from cpp.board import *
-from cpp.decision_engine import *
+from amie.board import *
+from amie.decision_engine import *
 
 class AIPlayer:
     """
@@ -29,7 +31,7 @@ class AIPlayer:
         """
 
         self.board           = Board()
-        self.decision_engine = DecisionEngine(colour, self.board)
+        self.decision_engine = DecisionEngine(colour)
         
     def action(self):
         """
@@ -37,18 +39,14 @@ class AIPlayer:
         the latter moves are possible, returns a PASS action.
         """
 
-        return self.decision_engine.get_next_move(self.board)
+        return self.decision_engine.get_next_action(self.board)
 
 
     def update(self, colour, action):
         """
-        Updates the board after a player has made a move.
+        Updates the board after a player has performed an action.
         """
 
-        self.board.update_node(colour, action)
+        self.board.update_board(colour, action)
 
-
-if __name__ == "__main__":
-    player = AIPlayer("red")
-    player.action()
             

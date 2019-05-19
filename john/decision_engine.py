@@ -9,11 +9,6 @@ class DecisionEngine():
     EXIT                  = (999, 999)
     colour                = None
     exit_nodes            = None
-    open_node_combs       = None
-    init_node_comb        = None
-    closed_node_combs     = None
-    open_node_combs_queue = None
-    states                = None
 
     def __init__(self, colour, board):
 
@@ -37,49 +32,57 @@ class DecisionEngine():
 
         # if cutting an opponents piece is possible, then cut it
         # else try to find the best 
-        best_reducton = 0
+        piece_nodes   = board.piece_nodes
+        best_reducton = float("-inf")
         best_move     = possible_successors[0]
         cut_possible  = False
 
-        for move in possible_successors:
+        for move in self.get_jump_moves(board, possible_successors):
 
-            if board.get_dist(move[0], move[1]) <= sqrt(2):
+            # get the jumped over node
+            q = int((move[1][0] + move[0][0]) / 2)
+            r = int((move[1][1] + move[0][1]) / 2)
+            jumped_over_node = (q, r)
 
-                # get the jumped over node
-                q = int((move[1][0] + move[0][0]) / 2)
-                r = int((move[1][1] + move[0][1]) / 2)
-                jumped_over_node = (q, r)
+            # check if the jumped over node was occupied by an enemy - if 
+            # multiple cuts possible, select the cut that will move the the 
+            # team closes to the exit
+            for colour in piece_nodes:
+                if colour == self.colour:
+                    continue
+                for node in piece_nodes[colour]:
+                    if node == jumped_over_node:
+                        
+                        curr_dist = board.get_min_no_of_moves_to_exit(move[0],\
+                                                                    self.colour)
+                        new_dist  = board.get_min_no_of_moves_to_exit(move[1],\
+                                                                    self.colour)
 
-                piece_nodes = board.piece_nodes
-                for colour in piece_nodes:
-                    if colour == self.colour:
-                        continue
-                    for node in piece_nodes[colour]:
-                        if node == jumped_over_node:
-                            best_move    = move
-                            cut_possible = True
-                            break
-                    if cut_possible:
-                        break
+                        reduction = curr_dist - new_dist
+                        if reduction > best_reducton:
+                            best_reducton = reduction
+                            best_move     = move
+                            cut_possible  = True
             
-            if cut_possible:
-                break
+        if not cut_possible:
 
-            # an exit move would be the best 
-            if move[1] == self.EXIT:
-                best_move     = move
-                best_reducton = float("+inf")
-                continue
+            for move in possible_successors:
 
-            # if not an exit move, check the distance to the exit reduces with
-            # a move
-            curr_dist = board.get_min_no_of_moves_to_exit(move[0], self.colour)
-            new_dist  = board.get_min_no_of_moves_to_exit(move[1], self.colour)
+                # an exit move would be the best 
+                if move[1] == self.EXIT:
+                    best_move     = move
+                    best_reducton = float("+inf")
+                    continue
 
-            reduction = curr_dist - new_dist
-            if reduction > best_reducton:
-                best_reducton = reduction
-                best_move = move
+                # if not an exit move, check the distance to the exit reduces with
+                # a move
+                curr_dist = board.get_min_no_of_moves_to_exit(move[0], self.colour)
+                new_dist  = board.get_min_no_of_moves_to_exit(move[1], self.colour)
+
+                reduction = curr_dist - new_dist
+                if reduction > best_reducton:
+                    best_reducton = reduction
+                    best_move = move
 
         if best_move[1] == self.EXIT:
             return ("EXIT", best_move[0])
@@ -119,7 +122,13 @@ class DecisionEngine():
 
         return possible_moves
         
-            
+    def get_jump_moves(self, board, moves):
+        """
+        Filters and returns the jump moves from a list of moves.
+        """
+
+        return [move for move in moves if ((move[1] != self.EXIT) and \
+                                (board.get_dist(move[0], move[1]) > sqrt(2)))]
 
 
 

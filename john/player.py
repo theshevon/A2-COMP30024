@@ -2,10 +2,10 @@
 Implementation of an Autonomous agent that will play the Chexers board game 
 against two other players.
 
-Version No: 0.0
+Version No: 0.2
 Version Details:
-Basic implementation that focuses on completing the game without making any
-invalid moves. All of the players moves are random.
+Agent that's greedy on the distance to an exit tile. However, if it can cut an 
+opponent's piece, then it will.
 
 Written by David Crowe and Shevon Mendis, May 2019
 """
