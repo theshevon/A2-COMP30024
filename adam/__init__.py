@@ -1,0 +1,1 @@
+from adam.player import AIPlayer as Player

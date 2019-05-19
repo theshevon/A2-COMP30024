@@ -1,1 +1,0 @@
-from power_puff_boys.player import AIPlayer as Player

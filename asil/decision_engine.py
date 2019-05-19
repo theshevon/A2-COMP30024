@@ -1,7 +1,5 @@
 from math import sqrt
 from random import randint
-from power_puff_boys.node_utilities import *
-from power_puff_boys.priority_queue import *
 
 class DecisionEngine():
     """
@@ -37,15 +35,33 @@ class DecisionEngine():
         if len(possible_successors) == 0:
             return ("PASS", None)
 
-        # pick a random move
-        action = possible_successors[randint(0, len(possible_successors) - 1)]
+        # pick the move that minimises the distance to the exit the most
+        best_reducton = 0
+        best_move     = possible_successors[0]
+        
+        for move in possible_successors:
 
-        if action[1] == self.EXIT:
-            return ("EXIT", action[0])
+            # an exit move would be the best 
+            if move[1] == self.EXIT:
+                best_move = move
+                break
+
+            # if not an exit move, check the distance to the exit reduces with
+            # a move
+            curr_dist = board.get_min_no_of_moves_to_exit(move[0], self.colour)
+            new_dist  = board.get_min_no_of_moves_to_exit(move[1], self.colour)
+
+            reduction = curr_dist - new_dist
+            if reduction > best_reducton:
+                best_reducton = reduction
+                best_move = move
+        
+        if best_move[1] == self.EXIT:
+            return ("EXIT", best_move[0])
         else:
-            if board.get_dist(action[0], action[1]) <= sqrt(2):
-                return ("MOVE", action)
-            return ("JUMP", action)
+            if board.get_dist(best_move[0], best_move[1]) <= sqrt(2):
+                return ("MOVE", best_move)
+            return ("JUMP", best_move)
 
 
     def get_all_possible_moves(self, board, nodes):
