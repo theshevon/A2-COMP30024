@@ -1,9 +1,7 @@
 from math import sqrt
 from random import randint
-from min_max_optimised.node_utilities import *
-from min_max_optimised.priority_queue import *
-from min_max_optimised.GameMechanics import *
-from min_max_optimised.min_max import *
+from calvin_huang.GameMechanics import *
+from calvin_huang.min_max import *
 class DecisionEngine():
     """
     Represents the agents 'brain' and so, decides which node to move to next.
@@ -12,10 +10,6 @@ class DecisionEngine():
     EXIT                  = (999, 999)
     colour                = None
     exit_nodes            = None
-    open_node_combs       = None
-    init_node_comb        = None
-    closed_node_combs     = None
-    open_node_combs_queue = None
     states                = None
 
     game_mechanics = GameMechanics()

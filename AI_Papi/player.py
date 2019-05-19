@@ -2,7 +2,7 @@
 Implementation of an Autonomous agent that will play the Chexers board game 
 against two other players.
 
-Version No: 2.2
+Version No: 1.0
 Version Details:
 - Utilises a minimax tree with alpha-beta pruning to determine the best move
 - The best move is determined by evaulating a game state using a heuristic that:

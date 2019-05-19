@@ -1,0 +1,1 @@
+from calvin_huang.player import AIPlayer as Player

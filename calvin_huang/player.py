@@ -2,16 +2,19 @@
 Implementation of an Autonomous agent that will play the Chexers board game 
 against two other players.
 
-Version No: 1.0
+Version No: 2.1
 Version Details:
-Improved ordering of moves
-stopped using recursive deepcopy
+- Improved ordering of moves
+- stopped using recursive deepcopy
+Current Issues:
+- Weird 'float' to 'int' conversion error
+
 Written by David Crowe and Shevon Mendis, May 2019
 """
 
-from min_max_optimised.GameMechanics import *
-from min_max_optimised.decision_engine import *
-from min_max_optimised.min_max_node import *
+from calvin_huang.GameMechanics import *
+from calvin_huang.decision_engine import *
+from calvin_huang.min_max_node import *
 
 class AIPlayer:
     """

@@ -35,7 +35,7 @@ class GameState:
         for colour_ in self.piece_nodes:
             if (colour_ == colour):
                 continue
-            enemy_piece_nodes = enemy_piece_nodes.union(deepcopy(self.piece_nodes[colour]))
+            enemy_piece_nodes = enemy_piece_nodes.union(deepcopy(self.piece_nodes[colour_]))
         
         return enemy_piece_nodes
 

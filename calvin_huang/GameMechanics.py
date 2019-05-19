@@ -1,5 +1,5 @@
 from math import sqrt
-from ppb_alpha_beta.min_max_node import *
+from calvin_huang.min_max_node import *
 import copy
 class GameMechanics():
 
@@ -186,25 +186,32 @@ class GameMechanics():
         Returns a list of all the possible states that can be moved to.
         
         """
-        possible_states = []
+        jump_states  =[]
+        exit_states = []
+        move_states = []
 
         for moved_from , moved_to, piece_jumped in self.get_all_possible_moves(state, colour):
-            temp_state = copy.deepcopy(state)
-            #remove the piece
+            #temp_state = copy.deepcopy(state)
+            temp_state = state.copy()
+            #remove the piece that moved
             temp_state.piece_nodes[colour].discard(moved_from)
+
             #if pieces hasn't exited add moved_to
             if(moved_to == (999,999)):
                 temp_state.exit_counts[colour]+=1; 
+                exit_states.append(temp_state)
             else:
                 temp_state.piece_nodes[colour].add(moved_to)
 
             #checks if a new piece has been gained
             if( piece_jumped):
                 self.change_piece_node(temp_state , piece_jumped, colour)
-            possible_states.append(temp_state)
+                jump_states.append(temp_state)
+            else:
+                move_states.append(temp_state)
         #indicates pass is the only move
         #only adds if there are no other moves available
-        if(len(possible_states) == 0):
-            possible_states.append(state)
+        if(not(jump_states or exit_states or move_states)):
+            return [state]
         #print(len(possible_states))
-        return possible_states
+        return exit_states + jump_states + move_states

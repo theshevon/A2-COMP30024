@@ -1,5 +1,5 @@
 from random import randint
-from ppb_alpha_beta.GameMechanics import *
+from calvin_huang.GameMechanics import *
 
 
 class MIN_MAX():
@@ -53,7 +53,7 @@ class MIN_MAX():
 
     #testing purposes
     def heuristic_value(self, state, max_colour):
-        MAX_DISTANCE = 6
+        MAX_DISTANCE = 24
         weight = 0
         feature_total = 0
         for colour in state.piece_nodes:
@@ -64,7 +64,13 @@ class MIN_MAX():
                 weight = -1
 
             for coord in state.piece_nodes[colour]:
-                feature_total += weight*(MAX_DISTANCE-self.manhattan_distance(coord,colour))
+                feature_total += weight*(6-self.manhattan_distance(coord,colour))
+
+            feature_total+= 15*weight* state.exit_counts[colour]
+
+            if(state.exit_counts[colour]==4):
+                feature_total += 100*weight
+
         return feature_total
 
 
