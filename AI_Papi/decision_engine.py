@@ -6,9 +6,11 @@ class DecisionEngine():
     Represents the agents 'brain' and so, decides which node to move to next.
     """
 
-    EXIT   = (999, 999)
-    DEPTH  = 3
-    colour = None
+    # TODO: implement transition steps
+
+    EXIT       = (999, 999)
+    MAX_DEPTH  = 3
+    colour     = None
 
     def __init__(self, colour):
 
@@ -20,7 +22,7 @@ class DecisionEngine():
         given the current state of the board.
         """
 
-        _, action = self.minimax(board, board.get_game_state(), self.DEPTH, float("-inf"), float("+inf"), self.colour, self.colour)
+        _, action = self.minimax(board, board.get_game_state(), self.MAX_DEPTH, float("-inf"), float("+inf"), self.colour, self.colour)
 
         if action is None:
             return ('PASS', None)
@@ -96,54 +98,6 @@ class DecisionEngine():
             
         return successor_states
 
-    def evaluate_state_old(self, board, state, colour):
-        
-        utility = 0
-
-        nodes = state.piece_nodes[colour]
-        n_nodes = len(nodes)
-
-        if n_nodes == 0:
-            if state.get_exit_count(colour) == state.WIN_EXIT_COUNT:
-                return float("+inf")
-            else:
-                return float("-inf")
-
-        utility += 20 * n_nodes 
-        
-        # - get average distance to exit
-        total_dist = 0
-        for node in nodes:
-            total_dist = board.get_approx_distance_to_exit(node, colour)
-        avg_dist_to_exit = total_dist / n_nodes
-
-        utility += 5 * avg_dist_to_exit;
-
-        # - get army displacement
-        # -- calculate centroid
-        central_node = [0, 0]
-        for node in nodes:
-            central_node[0] += node[0]
-            central_node[1] += node[1]
-        central_node = tuple([x / n_nodes for x in central_node])
-        # -- calculate average distance of each piece from centroid
-        total_dist = 0
-        for node in nodes:
-            total_dist = board.get_euclidean_distance(central_node, node)
-        avg_dist_to_centre = total_dist / n_nodes
-
-        utility += 15 * avg_dist_to_centre
-
-        # - check number of enemy pieces
-        n_enemy_pieces = len(state.get_enemy_piece_nodes(colour))
-
-        utility += -1 * n_enemy_pieces
-
-        if state.get_exit_count(colour) == state.WIN_EXIT_COUNT:
-            utility += 10000
-
-        return utility
-
     def evaluate_state(self, board, state, colour):
         
         utility        = 0
@@ -157,7 +111,7 @@ class DecisionEngine():
                 return float("-inf")
 
         # - get average distance to exit
-        total_no_moves_to_exit = 0
+        total_no_moves_to_exit = 0.1
         for p_node in player_nodes:
             total_no_moves_to_exit += board.get_min_no_of_moves_to_exit(p_node, colour)
         avg_no_of_moves_to_exit = total_no_moves_to_exit / n_nodes
@@ -170,14 +124,14 @@ class DecisionEngine():
             central_node[1] += p_node[1]
         central_node = tuple([coord_val / n_nodes for coord_val in central_node])
         # -- calculate the average distance of each piece from the centroid
-        total_dist = 0
+        total_dist = 0.1
         for p_node in player_nodes:
             total_dist += board.get_euclidean_distance(central_node, p_node)
         avg_dist_to_centre = total_dist / n_nodes
 
         # score opponents
         enemy_nodes  = state.get_enemy_piece_nodes(colour)
-        enemy_scores = 0
+        enemy_scores = 0.1
         for e_node in enemy_nodes:
             # if enemy can cut one of your pieces, give them a higher score
             for p_node in player_nodes:
@@ -201,11 +155,15 @@ class DecisionEngine():
         for p_node in player_nodes:
             player_scores += 3
 
+        # TODO: learn how to exit - maybe score based on exit
+        # TODO: normalise so that we have at least (4 - n_exited) players
+        # TODO: score based on how many pieces we threaten
+        # TODO: maybe use these to figure out which player is ahead and then prefer moves that hurts that player? (if two moves score the same as us)
 
         # calculate utility based on the above scores
-        utility = (1 / avg_no_of_moves_to_exit) + \
-                  (1 / enemy_scores) + \
-                  (1 / avg_dist_to_centre) + \
+        utility = (20 / avg_no_of_moves_to_exit) + \
+                  (10 / enemy_scores) + \
+                  (2 / avg_dist_to_centre) + \
                   player_scores
 
         # exit if it results in a terminal state
@@ -214,6 +172,12 @@ class DecisionEngine():
 
         return utility
     
+    def evalute_state_new(self, board, state, colour):
+        utility = 0
+        # 0.5 * distance of each piece from exit
+        # n_pieces * 5
+        # += 10 if piece can exit else 0
+        # += 20 if current exit < self.number_exited else 0
 
     def minimax(self, board, state, depth, alpha, beta, curr_colour, max_colour):
 
