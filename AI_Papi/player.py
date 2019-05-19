@@ -9,7 +9,7 @@ Version Details:
     - Minimises team army displacement
     - Minimises the distance to the exit
     - Minimises the number of enemy pieces
-        - Scores the enemies based on how threatening they are to our agents 
+        - Scores the enemies based on how threatening they are to our agent's 
           pieces. The score factors in how many pieces you have on the board as
           an enemy would be less threatening if you had > (4 - n_pieces_exited)
           on the board
