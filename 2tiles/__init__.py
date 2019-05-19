@@ -1,0 +1,1 @@
+from 2tiles.player import AIPlayer as Player
