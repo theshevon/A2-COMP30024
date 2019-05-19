@@ -1,0 +1,1 @@
+from four_pieces.player import AIPlayer as Player
