@@ -35,15 +35,58 @@ class DecisionEngine():
         if len(possible_successors) == 0:
             return ("PASS", None)
 
-        # pick a random move
-        action = possible_successors[randint(0, len(possible_successors) - 1)]
+        # if cutting an opponents piece is possible, then cut it
+        # else try to find the best 
+        best_reducton = 0
+        best_move     = possible_successors[0]
+        cut_possible  = False
 
-        if action[1] == self.EXIT:
-            return ("EXIT", action[0])
+        for move in possible_successors:
+
+            if board.get_dist(move[0], move[1]) <= sqrt(2):
+
+                # get the jumped over node
+                q = int((move[1][0] + move[0][0]) / 2)
+                r = int((move[1][1] + move[0][1]) / 2)
+                jumped_over_node = (q, r)
+
+                piece_nodes = board.piece_nodes
+                for colour in piece_nodes:
+                    if colour == self.colour:
+                        continue
+                    for node in piece_nodes[colour]:
+                        if node == jumped_over_node:
+                            best_move    = move
+                            cut_possible = True
+                            break
+                    if cut_possible:
+                        break
+            
+            if cut_possible:
+                break
+
+            # an exit move would be the best 
+            if move[1] == self.EXIT:
+                best_move     = move
+                best_reducton = float("+inf")
+                continue
+
+            # if not an exit move, check the distance to the exit reduces with
+            # a move
+            curr_dist = board.get_min_no_of_moves_to_exit(move[0], self.colour)
+            new_dist  = board.get_min_no_of_moves_to_exit(move[1], self.colour)
+
+            reduction = curr_dist - new_dist
+            if reduction > best_reducton:
+                best_reducton = reduction
+                best_move = move
+
+        if best_move[1] == self.EXIT:
+            return ("EXIT", best_move[0])
         else:
-            if board.get_dist(action[0], action[1]) <= sqrt(2):
-                return ("MOVE", action)
-            return ("JUMP", action)
+            if board.get_dist(best_move[0], best_move[1]) <= sqrt(2):
+                return ("MOVE", best_move)
+            return ("JUMP", best_move)
 
 
     def get_all_possible_moves(self, board, nodes):

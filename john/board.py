@@ -25,7 +25,7 @@ class Board:
                    }
 
     # coefficents for lines through exits (cf[0]q + cf[1]r + cf[2] = 0) 
-    exit_line_cfs = { "blue" : (1, 1, 3) , "red": (1, 0, -3), 
+    EXIT_LINE_CFS = { "blue" : (1, 1, 3) , "red": (1, 0, -3), 
                                                         "green" : (0, 1, -3) }
 
     def __init__(self):
@@ -163,3 +163,15 @@ class Board:
                 r_end -= 1
 
         return neighbours
+
+    def get_min_no_of_moves_to_exit(self, node, colour):
+        """
+        Returns the minimum possible moves from a node to an exit nodes.
+        """
+        
+        cfs = self.EXIT_LINE_CFS[colour]
+        
+        # shortest number of 'move' actions to reach an exit node
+        n_min_moves = abs(cfs[0] * node[0] + cfs[1] * node[1] + cfs[2])
+
+        return n_min_moves
