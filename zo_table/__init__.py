@@ -1,0 +1,1 @@
+from zo_table.player import AIPlayer as Player
