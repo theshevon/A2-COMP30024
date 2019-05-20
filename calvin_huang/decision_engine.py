@@ -14,7 +14,7 @@ class DecisionEngine():
 
     game_mechanics = GameMechanics()
     min_max = MIN_MAX()
-    DEPTH = 5
+    DEPTH = 4
     def __init__(self, colour):
 
         self.colour      = colour

@@ -21,8 +21,8 @@ Current Issues:
 Written by David Crowe and Shevon Mendis, May 2019
 """
 
-from AI_Papi.board import *
-from AI_Papi.decision_engine import *
+from ben.board           import *
+from ben.decision_engine import *
 
 class AIPlayer:
     """

@@ -1,5 +1,5 @@
 from math import sqrt
-from AI_Papi.game_state import *
+from Wildcat.game_state import *
 
 class DecisionEngine():
     """
@@ -9,7 +9,7 @@ class DecisionEngine():
     # TODO: implement transition steps
 
     EXIT       = (999, 999)
-    MAX_DEPTH  = 3
+    MAX_DEPTH  = 4
     colour     = None
 
     def __init__(self, colour):
@@ -47,7 +47,9 @@ class DecisionEngine():
         ("EXIT", (999, 999)).
         """
 
-        possible_moves = []
+        jump_moves     = []
+        exit_moves     = []
+        move_moves     = []
         team_nodes     = state.get_team_piece_nodes(colour)
         occupied_nodes = state.get_all_piece_nodes()       
 
@@ -55,7 +57,7 @@ class DecisionEngine():
 
             # check if an exit is one of the possible moves
             if node in board.get_exit_nodes(colour):
-                possible_moves.append((node, self.EXIT))
+                exit_moves.append((node, self.EXIT))
             
             # add neighbouring nodes to list
             for neighbouring_node in board.get_neighbouring_nodes(node):
@@ -65,17 +67,16 @@ class DecisionEngine():
 
                     landing_node=board.get_landing_node(node, neighbouring_node)
                     if (landing_node):
-                        possible_moves.append((node, landing_node))
+                        jump_moves.append((node, landing_node))
                 
                 else:
-                    possible_moves.append((node, neighbouring_node))
+                    move_moves.append((node, neighbouring_node))
 
-        # convert all the moves into actions
-        possible_actions = []
-        for move in possible_moves:
-            possible_actions.append(self.get_action_from_move(board, move))
-        
-        return possible_actions
+        # aggregate moves in the specified order
+        possible_moves = jump_moves + exit_moves + move_moves
+
+        # convert all the moves into actions and return it
+        return [self.get_action_from_move(board, move) for move in possible_moves]
    
     def get_all_successor_states(self, state, board, colour):
         """
@@ -98,7 +99,7 @@ class DecisionEngine():
             
         return successor_states
 
-    def evaluate_state(self, board, state, colour):
+    def evaluate_state_old(self, board, state, colour):
         
         utility        = 0
         player_nodes   = state.piece_nodes[colour]
@@ -172,18 +173,32 @@ class DecisionEngine():
 
         return utility
     
-    def evalute_state_new(self, board, state, colour):
-        utility = 0
-        # 0.5 * distance of each piece from exit
-        # n_pieces * 5
-        # += 10 if piece can exit else 0
-        # += 20 if current exit < self.number_exited else 0
+    def evaluate_state(self, board, state, colour):
+        MAX_DISTANCE = 24
+        weight = 0
+        feature_total = 0
+        for colour_ in state.piece_nodes:
+
+            if(colour_ == colour):
+                weight = 1
+            else:
+                weight = -1
+
+            for coord in state.piece_nodes[colour_]:
+                feature_total += weight*(6-board.get_min_no_of_moves_to_exit(coord,colour_))
+
+            feature_total+= 15*weight* state.exit_counts[colour_]
+
+            if(state.exit_counts[colour_]==4):
+                feature_total += 100*weight
+
+        return feature_total
 
     def minimax(self, board, state, depth, alpha, beta, curr_colour, max_colour):
 
         next_colour = { "red" : "green", "green" : "blue", "blue" : "red" }
 
-        if depth == 0:
+        if (depth == 0) or (state.is_terminal()):
             return self.evaluate_state(board, state, max_colour), None
         
         is_maximising_player = True if max_colour == curr_colour else False

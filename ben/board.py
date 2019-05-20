@@ -1,6 +1,6 @@
 from math import sqrt
 from copy import deepcopy
-from AI_Papi.game_state import *
+from ben.game_state import *
 
 class Board:
     """

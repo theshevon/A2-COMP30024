@@ -1,0 +1,1 @@
+from Wildcat.player import AIPlayer as Player

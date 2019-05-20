@@ -4,7 +4,7 @@ from calvin_huang.GameMechanics import *
 
 class MIN_MAX():
     game_mechanics = GameMechanics()
-    player_increment={"red": "blue" , "blue": "green" , "green": "red"}
+    player_increment= {"red": "blue" , "blue": "green" , "green": "red"}
 
 
     def alpha_beta( self, state , depth , alpha , beta , current_colour, max_colour):
