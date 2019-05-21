@@ -44,7 +44,7 @@ class Board:
         Returns the current game state.
         """
 
-        return deepcopy(self.game_state)
+        return self.game_state
 
     def get_exit_nodes(self, colour):
         """

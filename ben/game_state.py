@@ -4,8 +4,9 @@ class GameState:
 
     WIN_EXIT_COUNT = 4
 
-    piece_nodes    = None
-    exit_counts    = None
+    piece_nodes    = {}
+    exit_counts    = {}
+    COLOURS        = { "red", "green", }
 
     def __init__(self, piece_nodes, exit_counts):
         
@@ -16,14 +17,13 @@ class GameState:
         print("Piece Nodes:", self.piece_nodes)
         print("Exit Counts:", self.exit_counts)
 
-
     def get_team_piece_nodes(self, colour):
         """
         Returns a dictionary containing the nodes occupied by all the pieces on 
         the board, categorised by colour.
         """
 
-        return deepcopy(self.piece_nodes[colour])
+        return self.piece_nodes[colour]
 
     def get_enemy_piece_nodes(self, colour):
         """
@@ -35,7 +35,7 @@ class GameState:
         for colour_ in self.piece_nodes:
             if (colour_ == colour):
                 continue
-            enemy_piece_nodes = enemy_piece_nodes.union(deepcopy(self.piece_nodes[colour_]))
+            enemy_piece_nodes = enemy_piece_nodes.union(self.piece_nodes[colour_])
         
         return enemy_piece_nodes
 
@@ -46,7 +46,7 @@ class GameState:
 
         piece_nodes = set()
         for colour_ in self.piece_nodes:
-            piece_nodes = piece_nodes.union(deepcopy(self.piece_nodes[colour_]))
+            piece_nodes = piece_nodes.union(self.piece_nodes[colour_])
         
         return piece_nodes
 
@@ -106,3 +106,11 @@ class GameState:
                 self.piece_nodes[colour].discard(node)
                 self.piece_nodes[new_colour].add(node)
                 return
+
+    # def copy(self):
+    #     piece_nodes = {}
+    #     exit_counts = {}
+
+    #     for colour in piece_nodes:
+    #         piece_nodes[colour] = set(self.piece_nodes[colour])
+    #         exit_counts[colour] = 

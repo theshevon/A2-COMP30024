@@ -102,7 +102,7 @@ class DecisionEngine():
             
         return successor_states
 
-    def evaluate_state_old(self, board, state, colour):
+    def evaluate_state(self, board, state, colour):
         
         utility        = 0
         player_nodes   = state.piece_nodes[colour]
@@ -176,7 +176,7 @@ class DecisionEngine():
 
         return utility
     
-    def evaluate_state(self, board, state, colour):
+    def evaluate_state_old(self, board, state, colour):
         MAX_DISTANCE = 24
         weight = 0
         feature_total = 0
