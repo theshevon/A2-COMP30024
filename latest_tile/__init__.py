@@ -1,0 +1,1 @@
+from latest_tile.player import AIPlayer as Player
