@@ -99,7 +99,7 @@ class Board:
         """
        
         ran = range(-self.SIZE, self.SIZE+1)
-        return node in [(q,r) for q in ran for r in ran if -q-r in ran]
+        return (node[0] in ran) and (node[1] in ran) and (-node[0]-node[1] in ran)
 
     def get_euclidean_distance(self, node_1, node_2):
         """

@@ -80,10 +80,12 @@ class GameState:
         if action[0] == "EXIT":
             self.piece_nodes[colour].discard(action[1])
             self.exit_counts[colour] += 1
+            return 
 
         # and if the move wasn't an exit, update the set to reflect the pieces 
         # new location
         if (action[0] == "MOVE") or (action[0] == "JUMP"):
+
             self.piece_nodes[colour].add(action[1][1])
             self.piece_nodes[colour].discard(action[1][0])
 
