@@ -110,29 +110,28 @@ class DecisionEngine():
 
         all_pieces = state.get_all_piece_nodes()
 
+        #features to determine score on
         pieces_protected = dict() 
         pieces_capture_protected = dict()
         pieces_hanging = dict() 
         protected_by_edge =  dict() 
-        #tfw had to google the plural
+
+        #adjacent tile directions
         directions = [(1,0), (-1, 0) , (0,1) , (0,-1),(1,-1) , (1,-1)] 
 
-        #add pieces protected and pieces potentially threatened for each colour
-        #for colour in state.piece_nodes:
-            #pieces_protected[colour]= set()
-            #potentially_threatening = set()
+
         tile_counts = dict()
         distance_counts = dict()
-
         exit_sum = dict()
         weight =dict()
         hanging_weight = dict()
+
+        #initialise features and weights for different colours
         for colour in state.piece_nodes:
             pieces_protected[colour]= 0 
             pieces_capture_protected[colour] = 0
             pieces_hanging[colour] = 0
             protected_by_edge[colour] =  0
-
 
         for colour in state.piece_nodes:
 
@@ -144,7 +143,7 @@ class DecisionEngine():
                 hanging_weight[colour] = 0
 
 
-
+            #determines features such as hanging pieces and pieces_protected
             distance_counts[colour] = 0  
             for location in state.piece_nodes[colour]:
                 for v in directions:
@@ -165,9 +164,11 @@ class DecisionEngine():
                         for e_colour in enemy_colours[colour]:
                             if tile[0] in state.piece_nodes[e_colour]:
                                 if not board.is_on_board(tile[1]):
-                                    pieces_capture_protected[e_colour]+=1
                                     #capture_protected by edge
+                                    pieces_capture_protected[e_colour]+=1
+
                                 else:
+                                    #pieces that could potentially be captured
                                     if tile[1] not in all_pieces:
                                         pieces_hanging[e_colour]+=1
                                     else:
@@ -176,7 +177,8 @@ class DecisionEngine():
                 #distance for each piece
                 distance_counts[colour] += (6 -board.get_min_no_of_moves_to_exit(location,colour))
 
-            #calculating score
+            #calculating score - assigning weights to different features
+
             num_pieces = len(state.piece_nodes[colour])
             #0 to 6 
             score += weight[colour] * distance_counts[colour] * 1 
@@ -188,10 +190,11 @@ class DecisionEngine():
             score += weight[colour] * pieces_capture_protected[colour] * 0
             score += hanging_weight[colour] * pieces_hanging[colour] * -6
             score += weight[colour] * protected_by_edge[colour] * 0.15
-
+            #if terminal state found
             if(state.exit_counts[colour]==4):
 
                 score+= weight[colour]*100
+
         return score
 
     def minimax(self, board, state, depth, alpha, beta, curr_colour, max_colour):
